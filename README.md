@@ -1,6 +1,6 @@
 # CamSat-Bodenstation
 ## COM-Ports
-Ich habe so programmiert, dass der Arduino auf COM4 liegt, sollte das nicht passen, muss das in [Datenziehen.bat](Visualisierung/Datenziehen.bat#L2) und in [steuerung.py](Teleskop-Steuerung/steuerung.py#L66) geändert werden. Sollten dafür zwei verschiedene Arduinos verwendet werden, muss der jeweilige COM-Port angegeben werden.
+Ich habe so programmiert, dass der Arduino auf COM4 liegt, sollte das nicht passen, muss das in [Datenziehen.bat](Visualisierung/Datenziehen.bat#L2) und in [steuerung.py](Teleskop-Steuerung/steuerung.py#L55) geändert werden. Sollten dafür zwei verschiedene Arduinos verwendet werden, muss der jeweilige COM-Port angegeben werden.
 
 ## Visualisierung 
 Für die Visualisierung einfach [Alles.bat](Visualisierung/Alles.bat) ausführen.
