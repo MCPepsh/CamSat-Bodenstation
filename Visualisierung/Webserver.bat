@@ -1,3 +1,2 @@
-D:
-cd D:\Documents\CamSatVisuallisierung001\Visualisierung
+cd Visualisierung
 http-server -c-1

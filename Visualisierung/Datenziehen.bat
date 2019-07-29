@@ -1,3 +1,2 @@
-D:
-cd D:\Documents\CamsatVisuallisierung001\Daten
+cd Daten
 node main.js COM4
