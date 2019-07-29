@@ -1,5 +1,4 @@
 import json
-from turtle import *
 import math
 from time import *
 import re
@@ -32,6 +31,11 @@ def geoWinkel(a, b):
     y = math.cos(p1[0]) * math.sin(p2[0]) - math.sin(p1[0]) * math.cos(p2[0]) * math.cos(p2[1] - p1[1])
     return math.atan2(x, y)
 
+def hoeheWinkel(geo1, h1, geo2, h2):
+    a = abs(h1 - h2)
+    b = geoDist(geo1, geo2)
+    return math.atan2(a, b)
+
 def toDeg(x):
     return (x / math.pi) * 180
 
@@ -45,15 +49,25 @@ with open("settings.json", 'r') as settings:
     lok = settings["lookingAt"]
     hig = settings["height"]
     drehW = geoWinkel(loc, lok)
+    #drehW = settings["drehWinkel"]
 
     teleAusrichtung = drehW
-    schwW = math.atan((1000 - hig) / dist(loc, lok))
+    schwW = math.atan((1000 - hig) / geoDist(loc, lok))
+    schwW = hoeheWinkel(loc, hig, lok, 0)
+    schwW = settings["schwenkWinkel"]
+
+    print(drehW)
+    print(schwW)
+    print(str(toDeg(drehW)) + '°')
+    print(str(toDeg(schwW)) + '°')
+
 
 maxDrehGeschw = toRad(1.5)
 maxSchwGeschw = toRad(1.5)
-geschw = 0
+drehG = 0
+schwG = 0
 #datenOut = serial.Serial("COM4", 115200)
-sleep(3)
+#sleep(3)
 
 
 starttime = time()
@@ -66,28 +80,30 @@ for i in range(60):
             daten[0] = re.split(",", daten[0])
             daten[1] = re.split(",", daten[1])
             akt_pos = [float(daten[1][0]), float(daten[1][1])]
-            height = float(daten[1][2])
-            print("\n")
-            print(daten)
-            print(akt_pos)
-            print(height)
+            akt_hig = float(daten[1][2])
+            #print(daten)
+            #print(akt_pos)
+            #print(akt_hig)
 
-            drehR = winkel(akt_pos, loc)
-            schwR = calcSchwR(
+            drehR = geoWinkel(akt_pos, loc)
+            schwR = hoeheWinkel(loc, hig, akt_pos, akt_hig)
             relDrehR = drehR - drehW
             relSchwR = schwR - schwW
-            dreh_geschw = limitSpeed(relDrehR)
+            print(toDeg(relDrehR))
+            print(toDeg(relSchwR))
+            drehG = limitSpeed(relDrehR)
 
-            schwenk_geschw = limitSpeed(toRad(-5))
+            schwG = limitSpeed(relSchwR)
 
-            drehW = limit(drehW + dreh_geschw, teleAusrichtung - math.pi / 2, teleAusrichtung + math.pi / 2)
-            dreh_geschwout = (toDeg(dreh_geschw) / 1.5) * 500
-            dreh_geschwout = ("x" + str(dreh_geschwout)).encode()
-            schwenk_geschwout = (toDeg(schwenk_geschw) / 1.5) * 500
-            schwenk_geschwout = ("y" + str(schwenk_geschwout)).encode()
-            print(dreh_geschwout)
-            #datenOut.write(dreh_geschwout)
-            print(schwenk_geschwout)
-            #datenOut.write(schwenk_geschwout)
+            drehW = limit(drehW + drehG, teleAusrichtung - math.pi / 2, teleAusrichtung + math.pi / 2)
+            drehGOut = (toDeg(drehG) / 1.5) * 500
+            drehGOut = ("x" + str(drehGOut)).encode()
+            schwGOut = (toDeg(schwG) / 1.5) * 500
+            schwGOut = ("y" + str(schwGOut)).encode()
+            print(drehGOut)
+            #datenOut.write(drehGOut)
+            print(schwGOut)
+            #datenOut.write(schwGOut)
     sleep(0.5 - ((time() - starttime) % 0.5))
+    print("\n")
 datenOut.close()
