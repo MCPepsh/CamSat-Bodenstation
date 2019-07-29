@@ -1,5 +1,7 @@
 {
     "location": [51.86180087076521, 7.70742416381836],
     "lookingAt": [51.96180087076521, 7.70742416381836],
-    "height": 12
+    "height": 12,
+    "drehWinkel": 0,
+    "schwenkWinkel": 0
 }
