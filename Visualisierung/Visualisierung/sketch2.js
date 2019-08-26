@@ -17,20 +17,16 @@ var CamSatIconKlein = L.icon({
   iconAnchor: [6, 10]
 });
 
-var telePos = L.latLng([51.86180087076521, 7.70742416381836]); //51.85465448129371, 7.660903930664063
+var telePos = L.latLng([51.9286, 7.7148]); //51.86180087076521, 7.70742416381836
 var teleskop = L.marker(telePos).addTo(mymap);
 var teleVec = [1, 1];
 var startZeit = Date.now();
-L.polyline([telePos, L.latLng([51.86180087076521, 8.70742416381836])], {
-  weight: 1
-}).addTo(mymap);
-L.polyline([telePos, L.latLng([52.86180087076521, 7.70742416381836])], {
-  weight: 1
-}).addTo(mymap);
-L.polyline([telePos, L.latLng([52.86180087076521, 8.70742416381836])], {
+L.polyline([telePos, L.latLng([51.92858, 7.70754])], {
   weight: 1
 }).addTo(mymap);
 var teleLinie;
+
+var delay = 1000;
 
 
 /*ehemalige Mapssachen*/
@@ -101,7 +97,7 @@ var DASOut = document.getElementById("distanceAndSpeed");
 var winkelOut = document.getElementById("winkel");
 
 
-setInterval(getGPS, 1000);
+setInterval(getGPS, delay);
 
 async function getGPS() {
   var resp = await fetch("./aktuelledaten.txt");
@@ -116,7 +112,7 @@ async function getGPS() {
   var pre_height = data[0][2];
   var akt_height = data[1][2];
   locationOut.innerHTML = data[0] + "<br>" + data[1];
-  console.log(toHEX(akt_height));
+  //console.log(toHEX(akt_height));
 
 
   mymap.setView(pre_latlng, zoom);
@@ -149,20 +145,30 @@ async function getGPS() {
   startZeit = aktZeit;
 
   var dist = telePos.distanceTo(akt_latlng);
-  var speed = (akt_latlng.distanceTo(pre_latlng)) / (millis / 1000);
+  var speed = (akt_latlng.distanceTo(pre_latlng)) / (millis / delay);
+  var fall_speed = (data[0][2] - data[1][2]) / (millis / delay);
   //console.log(millis);
-  DASOut.innerHTML = "distance: " + dist + " m<br>" + "speed: " + speed + " m/s";
+  DASOut.innerHTML = "distance: " + dist + " m<br>speed: " + speed + " m/s<br>fallgeschw.: " + fall_speed + " m/s";
 
   var vector = [akt_latlng["lat"] - telePos["lat"], akt_latlng["lng"] - telePos["lng"]];
   //var winkel = (vector[0] * teleVec[0] + vector[1] * teleVec[1]) / (Math.sqrt(vector[0] * vector[0] + vector[1] * vector[1]) * Math.sqrt(teleVec[0] * teleVec[0] + teleVec[1] * teleVec[1]));
-  var winkel = Math.atan2(vector[1], vector[0]) - Math.atan2(teleVec[1], teleVec[0]);
+  //var winkel = Math.atan2(vector[1], vector[0]) - Math.atan2(teleVec[1], teleVec[0]);
+  var latA = (telePos["lat"] / 180) * Math.PI;
+  var lngA = (telePos["lng"] / 180) * Math.PI;
+  var latB = (akt_latlng["lat"] / 180) * Math.PI;
+  var lngB = (akt_latlng["lng"] / 180) * Math.PI;
+  var delta_phi = Math.log(Math.tan(latB / 2 + Math.PI / 4) / Math.tan(latA / 2 + Math.PI / 4));
+  var delta_lng = Math.abs(lngA - lngB);
+  var theta = Math.atan2(delta_lng, delta_phi);
+  var winkel = Math.atan2(Math.abs(telePos["lng"] - akt_latlng["lng"]), Math.log(Math.tan(akt_latlng["lat"] / 2 + Math.PI / 4) / Math.tan(telePos["lat"] / 2 + Math.PI / 4)));
+  winkel = theta;
   if (teleLinie != null) {
     teleLinie.setLatLngs([telePos, akt_latlng]);
   } else {
     teleLinie = L.polyline([telePos, akt_latlng]).addTo(mymap);
   }
   //console.log(vector, teleVec);
-  winkelOut.innerHTML = (winkel / (2 * Math.PI)) * 360 + "°";
+  winkelOut.innerHTML = (winkel / (Math.PI)) * 180 + "°";
 
   //pre_latlng = latlng;
   //mymap.panTo(L.latLng(["51 55.7080", "7 42.4452"]), 11);

@@ -20,6 +20,69 @@ def limit(n, minn, maxn):
 def limitSpeed(n, maxG):
     return limit(n, -maxG, maxG)
 
+'''def approxPos(arr):
+    out = []
+    print(len(arr))
+    for item in arr:
+        print(item[0])
+    print(arr)
+    for j in range(3):
+        a = 0
+        b = 0
+        out.append(arr[len(arr) - 1][j])
+        for i in range(len(arr) - 1):
+            y = arr[i][j]
+            weight = 1.0 / (1**(len(arr) - i - 2))
+            #print(weight)
+            #print(y)
+            #print(arr[i+1][j])
+            z = arr[i+1][j] - y
+            #print(z)
+            z = z * weight
+            #print(z)
+            a = a + z
+            b = b + weight
+        if(b != 0):
+            c = a / b
+            out[j] = out[j] + c
+    print(arr[len(arr) - 1])
+    print(out)
+    print([arr[len(arr) - 1][0] - out[0], arr[len(arr) - 1][1] - out[1], arr[len(arr) - 1][2] - out[2]])
+    return out'''
+
+def approxPos(arr):
+    out = []
+    factor = 2
+    if len(arr) < 3:
+        return arr[len(arr) - 1]
+
+    print()
+    for item in arr:
+        print(item[0])
+    print()
+    
+    for i in range(3):
+        s = []
+        for item in arr:
+            s.append(item[i])
+        out.append(s[len(s) - 1])
+        v = []
+        a = []
+        weight = []
+        weighted = []
+        for j in range(len(s) - 1):
+            weight.append(1/(factor**(len(s) - j - 2)))
+            v.append(s[j + 1] - s[j])
+
+        for j in range(len(v) - 1):
+            a.append(v[j + 1] - v[j])
+            weighted.append(a[j] * weight[j + 1])
+
+        a.append(sum(weighted)/sum(weight[1:]))
+        v.append(v[len(v) - 1] + a[len(a) - 1])
+        out[i] = (s[len(s) - 1] + v[len(v) - 1])
+    return out
+
 def geoDist(a, b):      # https://www.sunearthtools.com/en/tools/distance.php#txtDist_1
     p1 = [toRad(a[0]), toRad(a[1])]
     p2 = [toRad(b[0]), toRad(b[1])]
@@ -40,11 +103,8 @@ def geoWinkel(a, b):    # https://www.sunearthtools.com/en/tools/distance.php#tx
     delta_phi = math.log(math.tan(latB / 2 + math.pi / 4) / math.tan(latA / 2 + math.pi / 4))
     delta_lon = abs(lonA - lonB)
     if(delta_lon > toRad(180)):
-        delta_lon = delta_lon(mod(toRad(180)))
+        delta_lon = delta_lon % toRad(180)
     theta = math.atan2(delta_lon, delta_phi)
-    #print("delta_phi: " + str(delta_phi))
-    #print("delta_lon: " + str(delta_lon))
-    #print(theta)
     return(theta)
 
 def hoeheWinkel(geo1, h1, geo2, h2):
@@ -60,7 +120,24 @@ def toRad(x):
 
 ended = False
 
-#print("winkel: " + str(toDeg(geoWinkel([51.86, 7.7], [51.96, 7.8]))) + '°')
+
+
+
+
+print(approxPos([[0, 0, 0],
+     [1, 1, 1],
+     [2, 2, 2],
+     [3, 3, 3],
+     [4, 4, 4],
+     [3, 3, 3],
+     [2, 2, 2],
+     [3, 3, 3],
+     [4, 4, 4],
+     [7, 7, 7]]))
+
+
+
+
 
 with open("settings.json", 'r') as settings:
     settings = json.load(settings)
@@ -95,21 +172,23 @@ with open("settings.json", 'r') as settings:
     print(str(toDeg(drehW)) + '°')
     print(str(toDeg(schwW)) + '°')
 
-interval = 1/5          # 1/5 geht noch gut
-maxDrehG = toRad(3 * interval)
-maxSchwG = toRad(3 * interval)
-maxDrehG = toRad(0.3 * interval)
-maxSchwG = toRad(0.3 * interval)
+interval = 1/1          # 1/5 geht noch gut
+maxDrehG = toRad(5 * interval)
+maxSchwG = toRad(5 * interval)
+#maxDrehG = toRad(0.3 * interval)
+#maxSchwG = toRad(0.3 * interval)
 print(interval)
 drehG = 0
 schwG = 0
-datenOut = serial.Serial("COM4", 115200)
-sleep(3)
+CSDaten = []
+
+#datenOut = serial.Serial("COM4", 115200)
+#sleep(3)
 
 
 starttime = time()
-#while(not ended):
-for i in range(60):
+while(not ended):
+#for i in range(60):
     with open("../Visualisierung/Visualisierung/aktuelledaten.txt", 'r') as daten:
         daten = daten.readlines()
         if(not len(daten) == 0):
@@ -118,17 +197,31 @@ for i in range(60):
             daten[1] = re.split(",", daten[1])
             akt_pos = [float(daten[1][0]), float(daten[1][1])]
             akt_hig = float(daten[1][2])
+            if (len(CSDaten) >= 11):
+                CSDaten.pop(0)
+                #ended = True
+            
+            CSDaten.append([float(daten[1][0]), float(daten[1][1]), float(daten[1][2])])
+            
+            vorhersagen = approxPos(CSDaten)
+            CSlatGApr = vorhersagen[0]
+            CSlonGApr = vorhersagen[1]
+            CShigGApr = vorhersagen[2]
             #print(daten)
             #print(akt_pos)
             #print(akt_hig)
 
             drehR = geoWinkel(loc, akt_pos)
+            print(loc)
+            print(akt_pos)
+            print([CSlatGApr, CSlonGApr])
             schwR = hoeheWinkel(loc, hig, akt_pos, akt_hig)
             relDrehR = drehR - drehW
             relSchwR = schwR - schwW
-            #print("relDrehR: " + str(toDeg(relDrehR)) + '°')
-            #print("relSchwR: " + str(toDeg(relSchwR)) + '°')
-            #print("Drehrichtung: " + str(toDeg(drehR)) + '°')
+            print("relDrehR:....... " + str(toDeg(relDrehR)) + '°')
+            print("relSchwR:....... " + str(toDeg(relSchwR)) + '°')
+            print("Drehrichtung:... " + str(toDeg(drehR)) + '°')
+            print("Schwenkrichtung: " + str(toDeg(schwR)) + '°')
             #print("Drehwinkel:   " + str(toDeg(drehW)) + '°')
             #print("Teleausricht: " + str(toDeg(teleAusrichtung)) + '°')
             drehG = limitSpeed(relDrehR, maxDrehG)
@@ -142,42 +235,51 @@ for i in range(60):
             schwGOut = (schwG / maxSchwG) * 8
             schwGOut = ("y" + str(schwGOut)).encode()
             print(drehGOut)
-            datenOut.write(drehGOut)
+            #datenOut.write(drehGOut)
             print(schwGOut)
-            datenOut.write(schwGOut)
+            #datenOut.write(schwGOut)
 
-            '''reset()
+            reset()
             speed(0)
             ht()
             left(90)
 
-            right(toDeg(drehW))
-            color('green')
-            width(9)
-            forward(100)
+            right(toDeg(geoWinkel(loc, [CSlatGApr, CSlonGApr])) * 10)
+            color('black')
+            width(5)
+            forward(geoDist([CSlatGApr, CSlonGApr], loc) * 3 / 10.0)
             up()
-            left(toDeg(drehW))
+            left(toDeg(geoWinkel(loc, [CSlatGApr, CSlonGApr])) * 10)
             goto(0, 0)
             down()
 
-            right(toDeg(drehR))
-            color('red')
-            width(5)
-            forward(200)
+            right(toDeg(drehW) * 10)
+            color('green')
+            width(3)
+            forward(geoDist(akt_pos, loc) * 3 / 10.0)
             up()
-            left(toDeg(drehR))
+            left(toDeg(drehW) * 10)
+            goto(0, 0)
+            down()
+
+            right(toDeg(drehR) * 10)
+            color('red')
+            width(2)
+            forward(geoDist(akt_pos, loc) * 2 / 10.0)
+            up()
+            left(toDeg(drehR) * 10)
             goto(0, 0)
             down()
 
             right(toDeg(teleAusrichtung))
             color('blue')
             width(1)
-            forward(300)
+            forward(geoDist(akt_pos, loc) / 10.0)
             up()
             left(toDeg(teleAusrichtung))
             goto(0, 0)
-            down()'''
+            down()
     print(interval - ((time() - starttime) % interval))
     sleep(interval - ((time() - starttime) % interval))
     print("\n")
-datenOut.close()
+#datenOut.close()

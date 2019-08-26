@@ -33,11 +33,12 @@ function onOpen() {
 
 function onData(data) {
   if (data != "") {
-    var date = (new Date()).toJSON();
+    var date = new Date();
+    var dateJSON = date.toJSON();
     console.log(data + "");
     data = convert(data + "");
-    //console.log(data);
-    var daten = date + "," + data[0] + "," + data[1] + "," + data[2];
+    console.log(data);
+    var daten = date + ";" + dateJSON + ";" + data[0] + ";" + data[1] + ";" + data[2];
     //console.log(daten);
 
 
@@ -70,8 +71,11 @@ function convert(data) {
   data[0] = data[0].split(" ");
   data[1] = data[1].split(" ");
   //console.log(data);
-  data[0][1] /= 60;
-  data[1][1] /= 60;
+  data[0][1] /= 10000.0;
+  data[1][1] /= 10000.0;
+  data[0][1] /= 60.0;
+  data[1][1] /= 60.0;
+  data[2] /= 10000.0;
   //console.log(data);
   data[0] = Number(data[0][0]) + Number(data[0][1]);
   data[1] = Number(data[1][0]) + Number(data[1][1]);
