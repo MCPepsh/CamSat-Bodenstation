@@ -10,7 +10,7 @@
     "eventemitter3": "^3.1.2",
     "follow-redirects": "^1.7.0",
     "he": "^1.2.0",
-    "http-proxy": "^1.17.0",
+    "http-proxy": "^1.18.1",
     "http-server": "^0.11.1",
     "johnny-five": "^1.1.0",
     "keypress": "^0.2.1",
